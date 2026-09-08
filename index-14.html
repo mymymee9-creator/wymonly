@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>부스 배치도</title>
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+    :root{
+      --paper:#f7f5ef;
+      --card:#ffffff;
+      --navy:#173b72;
+      --text:#111111;
+      --muted:#77736f;
+      --line:#d4d1cb;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;}
+    body{
+      background:var(--paper);
+      color:var(--text);
+      font-family:Pretendard, Arial, sans-serif;
+      -webkit-font-smoothing:antialiased;
+    }
+
+    header{
+      height:92px;
+      border-bottom:1px solid #d1cec8;
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      padding:0 44px 25px;
+    }
+    .eyebrow{
+      margin:0 0 6px;
+      font-size:11px;
+      line-height:1;
+      color:#77736f;
+      font-weight:400;
+    }
+    h1{
+      margin:0;
+      font-size:25px;
+      line-height:1;
+      font-weight:800;
+      letter-spacing:-.05em;
+    }
+    .date{
+      font-size:11px;
+      line-height:1;
+      color:#77736f;
+      font-weight:400;
+    }
+
+    main{padding:29px 44px 48px;}
+    .guide{
+      margin:0 0 34px;
+      text-align:center;
+      font-size:11px;
+      line-height:1;
+      font-weight:500;
+      letter-spacing:-.035em;
+    }
+    .booth-grid{
+      display:grid;
+      grid-template-columns:repeat(6,minmax(0,1fr));
+      gap:17px 8px;
+    }
+    .booth{
+      height:73px;
+      min-width:0;
+      background:var(--card);
+      border:1px solid #d0d0d0;
+      border-radius:6px;
+      padding:10px 7px 7px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      overflow:hidden;
+      text-align:center;
+      transition:background-color .15s ease, border-color .15s ease;
+    }
+    .booth:hover,.booth.active{
+      transform:none;
+      background:#f3ead7;
+      border-color:var(--navy);
+    }
+    .number,.modal-number{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      height:16px;
+      padding:0 6px;
+      border-radius:5px;
+      background:var(--navy);
+      color:#fff;
+      font-size:6.5px;
+      line-height:1;
+      font-weight:500;
+      letter-spacing:-.03em;
+    }
+    .booth .number{margin-bottom:4px;}
+    .booth h2{
+      margin:0 0 2px;
+      font-size:10px;
+      line-height:1.05;
+      font-weight:800;
+      letter-spacing:-.055em;
+    }
+    .booth.long-title h2{font-size:9px; white-space:nowrap; letter-spacing:-.07em;}
+    .booth p{
+      margin:0 0 4px;
+      font-size:6.5px;
+      line-height:1;
+      color:#111;
+      letter-spacing:-.04em;
+    }
+    .heart{
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      color:var(--navy);
+      font-size:6px;
+      line-height:1;
+      font-weight:700;
+      letter-spacing:-.045em;
+    }
+
+    .backdrop{
+      position:fixed;
+      inset:0;
+      z-index:20;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      visibility:hidden;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .28s ease, visibility 0s linear .28s;
+      padding:20px;
+      background:rgba(247,245,239,.78);
+      backdrop-filter:blur(3px);
+    }
+    .backdrop.open{
+      visibility:visible;
+      opacity:1;
+      pointer-events:auto;
+      transition:opacity .28s ease, visibility 0s linear 0s;
+    }
+
+    .modal{
+      position:relative;
+      width:min(1320px,calc(100vw - 40px));
+      height:min(700px,calc(100vh - 40px));
+      overflow:hidden;
+      background:rgba(247,245,239,.97);
+      border:1px solid #bdbab4;
+      border-radius:17px;
+      padding:25px 32px 30px;
+      box-shadow:none;
+      opacity:0;
+      transform:scale(.985);
+      transition:opacity .28s ease, transform .28s ease;
+    }
+    .backdrop.open .modal{
+      opacity:1;
+      transform:scale(1);
+    }
+    .close{
+      position:absolute;
+      top:24px;
+      right:23px;
+      width:40px;
+      height:40px;
+      padding:0;
+      border:1px solid #d0cdc7;
+      border-radius:50%;
+      background:transparent;
+      color:#aaa7a1;
+      font-family:Arial,sans-serif;
+      font-size:25px;
+      font-weight:200;
+      line-height:36px;
+      cursor:pointer;
+    }
+    .modal-number{height:31px;padding:0 10px;border-radius:6px;font-size:15px;font-weight:600;margin-bottom:10px;}
+    .modal h2{
+      margin:0 0 10px;
+      font-size:29px;
+      line-height:1;
+      font-weight:800;
+      letter-spacing:-.065em;
+    }
+    .modal-sub{
+      margin:0 0 28px;
+      color:var(--navy);
+      font-size:13px;
+      line-height:1;
+      font-weight:700;
+      letter-spacing:-.045em;
+    }
+    .tweet-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:22px;
+    }
+    .tweet-slot{
+      height:500px;
+      min-width:0;
+      background:#fff;
+      border:1px solid #d3d3d3;
+      border-radius:10px;
+      padding:8px;
+      overflow:hidden;
+    }
+    .tweet-preview{
+      width:100%;
+      height:100%;
+      overflow:hidden;
+      transform:none;
+      transform-origin:top left;
+    }
+    .tweet-preview .twitter-tweet{
+      margin:0!important;
+      max-width:none!important;
+      width:100%!important;
+    }
+    .tweet-preview iframe{
+      max-width:none!important;
+      min-width:0!important;
+      width:100%!important;
+    }
+    .empty-post{width:100%;height:100%;}
+    .hint{display:none}
+
+    @media(max-width:900px){
+      header{padding-left:28px;padding-right:28px}
+      main{padding-left:28px;padding-right:28px}
+      .booth-grid{grid-template-columns:repeat(6,minmax(0,1fr));}
+    }
+    @media(max-width:650px){
+      header{height:82px;padding:0 20px 21px}
+      main{padding:25px 20px 35px}
+      .guide{margin-bottom:25px}
+      .booth-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 7px}
+      .modal{height:auto;max-height:calc(100vh - 30px);padding:22px 18px 20px}
+      .tweet-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+      .tweet-slot{height:420px}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <div class="eyebrow">2026 와얌여고 ~ 카레 연구 클럽 ~</div>
+      <h1>부스 배치도</h1>
+    </div>
+    <div class="date">26.10.11 SEOUL</div>
+  </header>
+
+  <main>
+    <p class="guide">클릭 시 각 부스 별 인포 게시물을 확인 할 수 있습니다.</p>
+    <section class="booth-grid" id="boothGrid"></section>
+  </main>
+
+  <div class="backdrop" id="backdrop">
+    <div class="modal" role="dialog" aria-modal="true">
+      <button class="close" id="closeBtn" aria-label="닫기">×</button>
+      <div class="modal-number" id="modalNumber">부스 번호</div>
+      <h2 id="modalTitle">부스 명</h2>
+      <p class="modal-sub">♥ 쿄사토 고바호시 메다니카</p>
+      <div class="tweet-grid" id="tweetGrid"></div>
+    </div>
+  </div>
+
+  <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+  <script>
+    const boothGrid = document.getElementById('boothGrid');
+    const backdrop = document.getElementById('backdrop');
+    const tweetGrid = document.getElementById('tweetGrid');
+    const modalNumber = document.getElementById('modalNumber');
+    const modalTitle = document.getElementById('modalTitle');
+    const closeBtn = document.getElementById('closeBtn');
+
+    const booths = Array.from({length:40}, (_,i) => ({
+      number: String(i+1).padStart(2,'0'),
+      name: i === 0 ? '행운의 사슴벌레' : i === 1 ? '데이트하러 가자' : i === 2 ? '뜨거운 커피랑 레몬티' : i === 3 ? '203호 가라오케 연습실' : i === 4 ? '서랍1층 저금통' : i === 5 ? '이거 사면 인기폭발한다' : i === 6 ? '나리모리 사교클럽' : i === 7 ? '부식일체' : i === 8 ? '고바야시 러버스 클럽' : i === 9 ? '쿄사토깎는부스' : i === 10 ? '섹시한파트너(줄여쓰지마세요)' : i === 11 ? '관계성 생활기록부' : i === 12 ? '이 주먹으로 난 가라오케 짱이 되었다' : i === 13 ? '마망까츠' : i === 14 ? '벌레나오는집' : i === 15 ? '와~야미야미' : i === 16 ? '스트로베리 타바코' : i === 17 ? '~ 10월도 어린이날 ~' : i === 18 ? '뽀삐야 순대 사왔다.' : i === 19 ? '산더미카레보존협회' : i === 20 ? '반액메론빵' : i === 21 ? '아이(고) 미(치겠다)' : i === 22 ? '야(쿠자) 조(아하는 안경남)' : i === 23 ? '고바호시 관찰일지 작성자' : i === 24 ? '털 날리는 집' : i === 25 ? '잘 익은 시계' : i === 26 ? '화유십일홍' : i === 27 ? '폴로 스티커와 명함' : i === 28 ? '인생 마지막 끌어치기 와얌월드 커플 차력쇼' : i === 29 ? '우리는 하나야 완전해 옳아' : i === 30 ? '합석가능' : i === 31 ? '가마타강총실할머니매운카레' : i === 32 ? '진짜뭔가해봄' : i === 33 ? '딸기 메론 파르페에 커피추가' : i === 34 ? '체포해' : i === 35 ? '이거 사면 인기 폭발한다' : i === 36 ? '20 45 어느 쪽이 좋아?' : i === 37 ? '지금까지 이런 맛은 없었다' : i === 38 ? '졸작은 미완, 사랑은 진행중.' : i === 39 ? '알콩달콩찻집' : '부스 명',
+      participant: i === 0 ? '척척' : i === 1 ? '하현' : i === 2 ? 'ESR' : i === 3 ? '203' : i === 4 ? '3000' : i === 5 ? '우스, 하나빈, suhyeol, 轶昳' : i === 6 ? '구납, 시옷, 생와, empty' : i === 7 ? '냠' : i === 8 ? '노른자' : i === 9 ? '눙이' : i === 10 ? '니코' : i === 11 ? '단' : i === 12 ? '도이' : i === 13 ? '마망' : i === 14 ? '몬드' : i === 15 ? '무타바' : i === 16 ? '벨죠' : i === 17 ? '복' : i === 18 ? '소금빵' : i === 19 ? '솔' : i === 20 ? '싸싸' : i === 21 ? '아이미' : i === 22 ? '야조' : i === 23 ? '옥슈슈' : i === 24 ? '육구삼' : i === 25 ? '이까꿍' : i === 26 ? '익명' : i === 27 ? '접속' : i === 28 ? '청현' : i === 29 ? '초매선생' : i === 30 ? '쿄오지이' : i === 31 ? '키로' : i === 32 ? '키사' : i === 33 ? '텔' : i === 34 ? '포' : i === 35 ? 'haman,반' : i === 36 ? 'rena' : i === 37 ? 'viva' : i === 38 ? 'スズラン' : i === 39 ? 'Latte' : '부스 참가자',
+      comment: '쿄사토 고바호시 메다니카',
+      posts: i === 0
+        ? ['https://x.com/3_3o_o__/status/2096554033079316667', null, null, null]
+        : i === 5
+        ? ['https://x.com/mevius_or/status/2095424102391861413?s=46', 'https://x.com/hanabean2918/status/2094367228150083629?s=46', 'https://x.com/seq_yeol13/status/2095829251912245404?s=46', 'https://x.com/yiyizoe_0605/status/2096632174804148463?s=46']
+        : i === 6
+        ? [null, null, 'https://x.com/sangwa_0630/status/2096827379935302049?s=46', 'https://x.com/lingkongg/status/2096859520249348162?s=46']
+        : [null, null, null, null]
+    }));
+
+    booths.forEach((booth, index) => {
+      const card = document.createElement('article');
+      card.className = 'booth' + ([12, 28].includes(index) ? ' long-title' : '');
+      card.innerHTML = `
+        <div class="number">부스 번호</div>
+        <h2>${booth.name}</h2>
+        <p>${booth.participant}</p>
+        <div class="heart">♥ 쿄사토 고바호시 메다니카</div>
+      `;
+      card.addEventListener('click', () => openBooth(index));
+      boothGrid.appendChild(card);
+    });
+
+    function openBooth(index){
+      const booth = booths[index];
+      modalNumber.textContent = '부스 번호';
+      modalTitle.textContent = booth.name;
+      tweetGrid.innerHTML = '';
+
+      booth.posts.forEach((url) => {
+        const slot = document.createElement('div');
+        slot.className = 'tweet-slot';
+
+        if (url) {
+          const preview = document.createElement('div');
+          preview.className = 'tweet-preview';
+          const block = document.createElement('blockquote');
+          block.className = 'twitter-tweet';
+          block.innerHTML = `<a href="${url}" target="_blank" rel="noopener">X 게시물 보기</a>`;
+          preview.appendChild(block);
+          slot.appendChild(preview);
+          tweetGrid.appendChild(slot);
+
+          if (window.twttr && window.twttr.widgets) {
+            window.twttr.widgets.load(preview);
+          } else {
+            setTimeout(() => window.twttr?.widgets?.load(preview), 800);
+          }
+        } else {
+          slot.innerHTML = '<div class="empty-post"></div>';
+          tweetGrid.appendChild(slot);
+        }
+      });
+      backdrop.classList.add('open');
+    }
+
+    function closeModal(){ backdrop.classList.remove('open'); }
+    closeBtn.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', e => { if(e.target === backdrop) closeModal(); });
+    document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+  </script>
+</body>
+</html>
